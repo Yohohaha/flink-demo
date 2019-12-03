@@ -17,7 +17,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
  *
  * @author Yohohaha
  */
-object WatermarkTest {
+object WatermarkKafkaPerPartitionTest {
   def main(args: Array[String]): Unit = {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
 
@@ -29,23 +29,17 @@ object WatermarkTest {
     properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
     properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "test")
     properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
-    val watermarkConsumer = new FlinkKafkaConsumer[KafkaData]("watermark-test-3", new KafkaDataDeserializationSchema, properties)
+    val watermarkConsumer = new FlinkKafkaConsumer[ExtractedData]("watermark-test-3", new ExtractedDataDeserializationSchema, properties)
     watermarkConsumer.setStartFromLatest()
+    // 在kafka consumer上加了watermark之后，不受env并行度控制
+    watermarkConsumer.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor[ExtractedData](Time.milliseconds(1)) {
+      override def extractTimestamp(element: ExtractedData): Long = {
+        println(s"partition=${element.kafkaData.partition} | offset=${element.kafkaData.offset} | value=${element.kafkaData.value} | emit timestamp=${element.timestamp}")
+        element.timestamp
+      }
+    })
 
     env.addSource(watermarkConsumer)
-
-
-    val wm = env.addSource(watermarkConsumer)
-      .map(kafkaData => {
-        val splits = kafkaData.value.split(",")
-        ExtractedData(kafkaData, splits(0), splits(1).toLong)
-      })
-      .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor[ExtractedData](Time.milliseconds(1)) {
-        override def extractTimestamp(element: ExtractedData): Long = {
-          println(s"partition=${element.kafkaData.partition} | offset=${element.kafkaData.offset} | value=${element.kafkaData.value} | emit timestamp=${element.timestamp}")
-          element.timestamp
-        }
-      })
       .map(e => {
         (e.value, 1L)
       })
@@ -58,6 +52,6 @@ object WatermarkTest {
         }
       }).print("result").setParallelism(1)
 
-    env.execute("watermark test")
+    env.execute("watermark kafka per partition test")
   }
 }
