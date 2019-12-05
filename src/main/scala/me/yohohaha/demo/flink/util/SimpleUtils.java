@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -95,6 +96,10 @@ public class SimpleUtils {
             properties.load(in);
         }
         return properties;
+    }
+
+    public static String getAbsoulutePathFromResourcePath(String resourcePath) {
+        return Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource(resourcePath)).getPath();
     }
 
 }
