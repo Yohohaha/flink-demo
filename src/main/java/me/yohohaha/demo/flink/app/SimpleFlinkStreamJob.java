@@ -13,7 +13,7 @@ import org.apache.flink.util.Collector;
  */
 public class SimpleFlinkStreamJob extends FlinkStreamJob {
     public static void main(String[] args) throws Exception {
-        FlinkStreamJob.run(args);
+        run(args);
     }
 
     @Override

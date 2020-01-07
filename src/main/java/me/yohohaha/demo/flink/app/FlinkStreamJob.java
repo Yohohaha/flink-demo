@@ -32,7 +32,7 @@ public abstract class FlinkStreamJob {
         flinkStreamJob.finish();
     }
 
-    private ParameterTool paras;
+    private ParameterTool params;
     private StreamExecutionEnvironment env;
 
     final protected void init(String[] args) {
@@ -46,9 +46,10 @@ public abstract class FlinkStreamJob {
             log.error("exception occured when reading `run.configuration`", e);
             runProperties = new Properties();
         }
-        paras = ParameterTool.fromMap((Map) runProperties).mergeWith(argParas);
+        params = ParameterTool.fromMap((Map) runProperties).mergeWith(argParas);
 
         env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.getConfig().setGlobalJobParameters(params);
     }
 
     abstract protected void process();
@@ -57,12 +58,12 @@ public abstract class FlinkStreamJob {
         env.execute(flinkJobName());
     }
 
-    protected ParameterTool paras() {
-        return paras;
+    protected ParameterTool params() {
+        return params;
     }
 
     protected String flinkJobName() {
-        return paras.getRequired(FLINK_JOB_NAME.key());
+        return params.getRequired(FLINK_JOB_NAME.key());
     }
 
     protected StreamExecutionEnvironment env() {
