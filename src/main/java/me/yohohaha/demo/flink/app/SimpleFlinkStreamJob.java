@@ -6,6 +6,8 @@ import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.util.Collector;
 
+import com.github.yohohaha.flink.FlinkStreamJob;
+
 /**
  * created at 2020/01/07 15:27:41
  *

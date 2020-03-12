@@ -2,7 +2,7 @@ package me.yohohaha.demo.flink.functest
 
 import java.util.Properties
 
-import me.yohohaha.demo.flink.util.SimpleUtils
+import com.github.yohohaha.java.util.{ExceptionUtils, IOUtils}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.functions.source.SourceFunction
@@ -22,10 +22,10 @@ object YarnTest {
     val runConfigurationPath = argParas.get("run.configuration")
     LOG.info(s"runConfigurationPath=$runConfigurationPath")
     val runProperties = try {
-      SimpleUtils.readProperties(runConfigurationPath)
+      IOUtils.readProperties(runConfigurationPath)
     } catch {
       case e => {
-        LOG.warn(SimpleUtils.getExceptionInfo(e))
+        LOG.warn(ExceptionUtils.getExceptionInfo(e))
         new Properties()
       }
     }
