@@ -1,5 +1,6 @@
 package me.yohohaha.demo.flink.functest;
 
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.state.StateTtlConfig;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
@@ -9,6 +10,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.yohohaha.flink.FlinkStreamJob;
 
 /**
@@ -28,9 +30,15 @@ public class RecordDeduplicateFunctionTest extends FlinkStreamJob {
     protected void process() {
         env()
             .fromElements(1, 2, 3, 3)
-            .keyBy(new KeySelector<Integer, Integer>() {
+            .map(new MapFunction<Integer, JSONObject>() {
                 @Override
-                public Integer getKey(Integer value) throws Exception {
+                public JSONObject map(Integer value) throws Exception {
+                    return new JSONObject().fluentPut("KEY", value);
+                }
+            })
+            .keyBy(new KeySelector<JSONObject, JSONObject>() {
+                @Override
+                public JSONObject getKey(JSONObject value) throws Exception {
                     return value;
                 }
             })
@@ -72,7 +80,7 @@ public class RecordDeduplicateFunctionTest extends FlinkStreamJob {
                 existState.update(true);
                 out.collect(value);
             } else {
-                System.out.println("去重: " + ctx.getCurrentKey());
+                System.out.println("被去重掉: " + ctx.getCurrentKey());
             }
         }
     }
